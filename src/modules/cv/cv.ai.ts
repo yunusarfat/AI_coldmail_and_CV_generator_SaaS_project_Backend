@@ -162,6 +162,7 @@
 
 
 import axios from "axios";
+import OpenAI from "openai";
 
 export const generateTailoredCV = async (profile: any, job: any) => {
   const prompt = `
@@ -231,23 +232,49 @@ JOB:
 ${JSON.stringify(job.jobAnalysis)}
 `;
 
-  const response = await axios.post(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-    {
-      contents: [
-        {
-          parts: [{ text: prompt }],
-        },
-      ],
-    }
-  );
+  // const response = await axios.post(
+  //   `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+  //   {
+  //     contents: [
+  //       {
+  //         parts: [{ text: prompt }],
+  //       },
+  //     ],
+  //   }
+  // );
 
-  const raw =
-    response.data.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+  // const raw =
+  //   response.data.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
 
-  const cleaned = raw.replace(/```json/g, "").replace(/```/g, "").trim();
+  // const cleaned = raw.replace(/```json/g, "").replace(/```/g, "").trim();
 
-  const parsed = JSON.parse(cleaned);
+  // const parsed = JSON.parse(cleaned);
+
+  const client = new OpenAI({
+    apiKey: process.env.GROQ_API_KEY,
+    baseURL: "https://api.groq.com/openai/v1",
+  });
+  
+  const response = await client.chat.completions.create({
+    model: "llama-3.3-70b-versatile",
+    messages: [
+      {
+        role: "system",
+        content: "You are an expert ATS resume writer. Return ONLY valid JSON.",
+      },
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
+    temperature: 0.7,
+  });
+  
+  const raw = response.choices[0]?.message?.content || "{}";
+  const parsed = JSON.parse(raw);
+
+
+
 
   // 🔥 FIX: FORCE EXPERIENCE STRUCTURE HERE
   const experience = [
