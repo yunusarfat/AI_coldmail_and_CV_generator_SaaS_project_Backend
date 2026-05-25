@@ -24,6 +24,10 @@ const cvSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    cloudinaryPublicId: {
+      type: String,
+      required: true,
+    },
 
     tailoredData: {
       type: Object,

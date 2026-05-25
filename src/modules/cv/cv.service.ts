@@ -138,6 +138,7 @@ const browser = await puppeteer.launch(
     profileId,
     jobId,
     pdfUrl: uploadResult.secure_url,
+    cloudinaryPublicId: uploadResult.public_id,
     tailoredData,
   });
 
@@ -155,36 +156,65 @@ export const getAllCVsService = async (userId: string) => {
 }
 
 
+// export const deleteCVService = async (userId: string, cvId: string) => {
+
+//   const cv = await CV.findOne(
+//     {
+//       _id: cvId,
+//       userId,
+
+//     }
+//   )
+//   if(!cv)
+//   {
+//     throw new Error("not found")
+//   }
+//   // if (cv.pdfUrl) {
+//   //   const filePath = path.join(
+//   //     process.cwd(),
+//   //     cv.pdfUrl
+//   //   );
+
+//   //   if (fs.existsSync(filePath)) {
+//   //     fs.unlinkSync(filePath);
+//   //   }
+//   // }
+
+//   await CV.findByIdAndDelete(cvId);
+
+//   return {
+//     message: "CV deleted successfully",
+//   };
+
+
+
+// }
+
+
+
+
 export const deleteCVService = async (userId: string, cvId: string) => {
+  const cv = await CV.findOne({
+    _id: cvId,
+    userId,
+  });
 
-  const cv = await CV.findOne(
-    {
-      _id: cvId,
-      userId,
-
-    }
-  )
-  if(!cv)
-  {
-    throw new Error("not found")
+  if (!cv) {
+    throw new Error("CV not found");
   }
-  // if (cv.pdfUrl) {
-  //   const filePath = path.join(
-  //     process.cwd(),
-  //     cv.pdfUrl
-  //   );
 
-  //   if (fs.existsSync(filePath)) {
-  //     fs.unlinkSync(filePath);
-  //   }
-  // }
+  // 🔥 DELETE FROM CLOUDINARY
+  if (cv.cloudinaryPublicId) {
+    await cloudinary.uploader.destroy(cv.cloudinaryPublicId, {
+      resource_type: "raw",
+    }).catch(err => console.log("Cloud delete failed:", err));
+  }
 
+  // 🔥 DELETE FROM DATABASE
   await CV.findByIdAndDelete(cvId);
 
   return {
     message: "CV deleted successfully",
+    deletedId: cvId,
   };
-
-
-
-}
+};
