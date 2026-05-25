@@ -170,6 +170,15 @@ You are an expert ATS resume writer.
 
 Create a highly optimized ONE PAGE resume.
 
+
+
+Return ONLY valid JSON.
+Do not use markdown.
+Do not use backticks.
+Do not include newline characters inside strings.
+Escape all special characters properly.
+Output must be machine-parseable JSON.
+
 IMPORTANT:
 - Do NOT invent fake information
 - Only use provided data
@@ -179,6 +188,7 @@ IMPORTANT:
 - Always return structured experience and projects as objects
 - Always include education section if present in CV
 - Show ONLY the most recent/latest education (last one only)
+
 
 SUMMARY RULE:
 - Write a highly job-specific summary tailored ONLY to the target job
@@ -260,24 +270,51 @@ ${JSON.stringify(job.jobAnalysis)}
     messages: [
       {
         role: "system",
-        content: "You are an expert ATS resume writer. Return ONLY valid JSON.",
+        content: "You are an expert ATS resume writer. Return ONLY valid JSON.Output ONLY valid minified JSON. No markdown. No backticks. No new lines inside strings. Escape all characters properly",
       },
       {
         role: "user",
         content: prompt,
       },
     ],
-    temperature: 0.7,
+    temperature: 0.2,
   });
+  // console.log(process.env.GROQ_API_KEY);
+
+  // const raw = response.choices[0]?.message?.content || "{}";
+
+  // const cleaned = raw
+  //   .replace(/```json/g, "")
+  //   .replace(/```/g, "")
+  //   .trim();
+
+  // const parsed = JSON.parse(cleaned);
+
+
+
+
 
   const raw = response.choices[0]?.message?.content || "{}";
 
-  const cleaned = raw
+  // remove markdown
+  let cleaned = raw
     .replace(/```json/g, "")
     .replace(/```/g, "")
     .trim();
 
-  const parsed = JSON.parse(cleaned);
+  // remove bad control characters (VERY IMPORTANT)
+  cleaned = cleaned.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
+
+  let parsed;
+
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch (err) {
+    console.log("RAW AI RESPONSE:", raw);
+    throw new Error("AI returned invalid JSON format");
+  }
+
+
 
 
 
