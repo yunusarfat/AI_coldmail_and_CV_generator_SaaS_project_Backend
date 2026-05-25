@@ -112,7 +112,7 @@
 //     }
 //   ],
 //   "achievements": [],
-  
+
 // }
 
 // PROFILE:
@@ -254,7 +254,7 @@ ${JSON.stringify(job.jobAnalysis)}
     apiKey: process.env.GROQ_API_KEY,
     baseURL: "https://api.groq.com/openai/v1",
   });
-  
+
   const response = await client.chat.completions.create({
     model: "llama-3.3-70b-versatile",
     messages: [
@@ -269,9 +269,15 @@ ${JSON.stringify(job.jobAnalysis)}
     ],
     temperature: 0.7,
   });
-  
+
   const raw = response.choices[0]?.message?.content || "{}";
-  const parsed = JSON.parse(raw);
+
+  const cleaned = raw
+    .replace(/```json/g, "")
+    .replace(/```/g, "")
+    .trim();
+
+  const parsed = JSON.parse(cleaned);
 
 
 
@@ -307,7 +313,7 @@ ${JSON.stringify(job.jobAnalysis)}
   // 🔥 FIX: ENSURE HEADLINE HAS EMAIL
   let headline = parsed.headline || `${profile.name || "Candidate"} | ${profile.currentRole || "Professional"}`;
   const email = profile.email || profile.contact?.email || "";
-  
+
   if (email && !headline.includes(email)) {
     headline = `${headline} | ${email}`;
   } else if (!email && !headline.match(/[\w.-]+@[\w.-]+\.[a-z]{2,}/i)) {
