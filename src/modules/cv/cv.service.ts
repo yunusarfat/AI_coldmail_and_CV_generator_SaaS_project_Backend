@@ -1,7 +1,9 @@
 import puppeteer from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
-import path from "path";
-import fs from "fs";
+// import path from "path";
+import cloudinary from "../../config/cloudinary";
+
+// import fs from "fs";
 
 import { Profile } from "../profile/profile.model";
 import { dJob } from "../djob/job.model";
@@ -52,22 +54,42 @@ export const generateCVService = async (
 
   await page.setContent(html);
 
-  // Ensure folder exists
-  const dir = path.join(process.cwd(), "generated-cvs");
+  // // Ensure folder exists
+  // const dir = path.join(process.cwd(), "generated-cvs");
 
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir);
-  }
+  // if (!fs.existsSync(dir)) {
+  //   fs.mkdirSync(dir);
+  // }
 
-  const fileName = `cv-${Date.now()}.pdf`;
+  // const fileName = `cv-${Date.now()}.pdf`;
 
-  const filePath = path.join(dir, fileName);
+  // const filePath = path.join(dir, fileName);
 
   // Generate PDF
-  await page.pdf({
-    path: filePath,
+  // await page.pdf({
+  //   path: filePath,
+  //   format: "A4",
+  //   printBackground: true,
+  // });
+
+  const buffer = await page.pdf({
     format: "A4",
     printBackground: true,
+  });
+
+  const uploadResult = await new Promise<any>((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: "generated-cvs",
+        resource_type: "raw",
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      }
+    );
+  
+    stream.end(buffer);
   });
 
   await browser.close();
@@ -77,7 +99,7 @@ export const generateCVService = async (
     userId,
     profileId,
     jobId,
-    pdfUrl: `/generated-cvs/${fileName}`,
+    pdfUrl: uploadResult.secure_url,
     tailoredData,
   });
 
@@ -108,16 +130,16 @@ export const deleteCVService = async (userId: string, cvId: string) => {
   {
     throw new Error("not found")
   }
-  if (cv.pdfUrl) {
-    const filePath = path.join(
-      process.cwd(),
-      cv.pdfUrl
-    );
+  // if (cv.pdfUrl) {
+  //   const filePath = path.join(
+  //     process.cwd(),
+  //     cv.pdfUrl
+  //   );
 
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
-  }
+  //   if (fs.existsSync(filePath)) {
+  //     fs.unlinkSync(filePath);
+  //   }
+  // }
 
   await CV.findByIdAndDelete(cvId);
 
