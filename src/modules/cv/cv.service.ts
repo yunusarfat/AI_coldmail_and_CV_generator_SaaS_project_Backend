@@ -44,11 +44,24 @@ export const generateCVService = async (
   });
 
   // Launch browser
-  const browser = await puppeteer.launch({
-    args: chromium.args,
-    executablePath: await chromium.executablePath(),
-    headless: true,
-  });
+  // const browser = await puppeteer.launch({
+  //   args: chromium.args,
+  //   executablePath: await chromium.executablePath(),
+  //   headless: true,
+  // });
+  const isProduction = process.env.NODE_ENV === "production";
+
+const browser = await puppeteer.launch(
+  isProduction
+    ? {
+        args: chromium.args,
+        executablePath: await chromium.executablePath(),
+        headless: true,
+      }
+    : {
+        headless: true,
+      }
+);
 
   const page = await browser.newPage();
 
