@@ -90,11 +90,31 @@ const browser = await puppeteer.launch(
     printBackground: true,
   });
 
+  // const uploadResult = await new Promise<any>((resolve, reject) => {
+  //   const stream = cloudinary.uploader.upload_stream(
+  //     {
+  //       folder: "generated-cvs",
+  //       resource_type: "raw",
+  //     },
+  //     (error, result) => {
+  //       if (error) return reject(error);
+  //       resolve(result);
+  //     }
+  //   );
+  
+  //   stream.end(buffer);
+  // });
+
+
+
+
   const uploadResult = await new Promise<any>((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       {
         folder: "generated-cvs",
         resource_type: "raw",
+        format: "pdf",
+        public_id: `cv-${Date.now()}`,
       },
       (error, result) => {
         if (error) return reject(error);
@@ -104,6 +124,11 @@ const browser = await puppeteer.launch(
   
     stream.end(buffer);
   });
+
+
+
+
+
 
   await browser.close();
 
