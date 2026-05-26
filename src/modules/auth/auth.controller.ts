@@ -4,6 +4,7 @@ import { verifyEmailService } from "./auth.service";
 import { signinService } from "./auth.service";
 import { sendResetCodeService } from "./auth.service";
 import { resetPasswordService } from "./auth.service";
+import { resendOtpService } from "./auth.service";
 
 export const signup = async (req: Request, res: Response) => {
     try {
@@ -85,6 +86,22 @@ export const verifyEmail = async (req: Request, res: Response) => {
       res.json({ message: "Password updated successfully" });
     } catch (err: any) {
       res.status(400).json({ error: err.message });
+    }
+  };
+
+
+
+  export const resendOtp = async (req: Request, res: Response) => {
+    try {
+      const { email } = req.body;
+  
+      const result = await resendOtpService(email);
+  
+      res.json(result);
+    } catch (error: any) {
+      res.status(400).json({
+        error: error.message,
+      });
     }
   };
 
