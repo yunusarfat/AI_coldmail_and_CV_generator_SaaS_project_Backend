@@ -130,6 +130,9 @@ export const signinService = async (email: string, password: string) => {
 
   if (!user) throw new Error("User not found");
   if (!user.isVerified) throw new Error("Email not verified");
+  if (!user.password) {
+    throw new Error("Password login not allowed for this account");
+  }
 
   const match = await bcrypt.compare(password, user.password);
   if (!match) throw new Error("Wrong password");
