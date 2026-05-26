@@ -30,6 +30,12 @@ router.get("/me", authMiddleware, (req, res) => {
 
 
 
+import { googleLogin } from "./auth.controller";
+
+router.post("/google", googleLogin);
+
+
+
 
 
 export default router;

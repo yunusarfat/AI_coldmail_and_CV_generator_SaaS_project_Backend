@@ -120,3 +120,50 @@ export const logout = (req: Request, res: Response) => {
 
   return res.json({ message: "Logged out successfully" });
 };
+
+
+
+
+
+
+import { verifyGoogleToken } from "./auth.google";
+import { User } from "../../models/user.model";
+import { generateToken } from "../../utils/jwt";
+
+export const googleLogin = async (req: Request, res: Response) => {
+  try {
+    const { idToken } = req.body;
+
+    const googleUser = await verifyGoogleToken(idToken);
+
+    // check user
+    let user = await User.findOne({ email: googleUser.email });
+
+    // create if not exists
+    if (!user) {
+      user = await User.create({
+        email: googleUser.email,
+        password: "", // no password for google users
+        isVerified: true,
+      });
+    }
+
+    // generate JWT
+    const token = generateToken(user._id.toString());
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false, // true in production
+      sameSite: "lax",
+    });
+
+    res.json({
+      message: "Google login successful",
+      user,
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      error: error.message,
+    });
+  }
+};
