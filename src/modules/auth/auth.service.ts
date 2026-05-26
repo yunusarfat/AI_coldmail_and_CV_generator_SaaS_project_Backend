@@ -4,61 +4,61 @@ import { generateOTP } from "../../utils/generateOTP";
 import { redis } from "../../config/redis";
 import { transporter } from "../../config/mail";
 
-export const signupService = async (email: string, password: string) => {
-  const existingUser = await User.findOne({ email });
+// export const signupService = async (email: string, password: string) => {
+//   const existingUser = await User.findOne({ email });
 
-  // 🔴 CASE 1: User exists
-  if (existingUser) {
-    if (existingUser.isVerified) {
-      throw new Error("User already exists");
-    }
+//   // 🔴 CASE 1: User exists
+//   if (existingUser) {
+//     if (existingUser.isVerified) {
+//       throw new Error("User already exists");
+//     }
 
-    // resend OTP for unverified user
-    const otp = generateOTP();
+//     // resend OTP for unverified user
+//     const otp = generateOTP();
 
-    await redis.set(`verify:${email}`, otp, "EX", 180);
+//     await redis.set(`verify:${email}`, otp, "EX", 180);
 
-    // async email (non-blocking but safe)
-    void transporter.sendMail({
-      to: email,
-      subject: "Verify Email",
-      text: `Your verification code is: ${otp}`,
-    }).catch((err) => {
-      console.error("OTP resend email failed:", err);
-    });
+//     // async email (non-blocking but safe)
+//     void transporter.sendMail({
+//       to: email,
+//       subject: "Verify Email",
+//       text: `Your verification code is: ${otp}`,
+//     }).catch((err) => {
+//       console.error("OTP resend email failed:", err);
+//     });
 
-    return {
-      message: "OTP resent. Please verify your email.",
-    };
-  }
+//     return {
+//       message: "OTP resent. Please verify your email.",
+//     };
+//   }
 
-  // 🟢 CASE 2: New user
-  const hashedPassword = await bcrypt.hash(password, 8);
+//   // 🟢 CASE 2: New user
+//   const hashedPassword = await bcrypt.hash(password, 8);
 
-  const user = await User.create({
-    email,
-    password: hashedPassword,
-    isVerified: false,
-  });
+//   const user = await User.create({
+//     email,
+//     password: hashedPassword,
+//     isVerified: false,
+//   });
 
-  const otp = generateOTP();
+//   const otp = generateOTP();
 
-  await redis.set(`verify:${email}`, otp, "EX", 180);
+//   await redis.set(`verify:${email}`, otp, "EX", 180);
 
-  // async email (non-blocking but safe)
-  void transporter.sendMail({
-    to: email,
-    subject: "Verify Email",
-    text: `Your verification code is: ${otp}`,
-  }).catch((err) => {
-    console.error("Signup email failed:", err);
-  });
+//   // async email (non-blocking but safe)
+//   void transporter.sendMail({
+//     to: email,
+//     subject: "Verify Email",
+//     text: `Your verification code is: ${otp}`,
+//   }).catch((err) => {
+//     console.error("Signup email failed:", err);
+//   });
 
-  return {
-    message: "Signup successful. Verify your email.",
-    userId: user._id, // optional (useful for frontend)
-  };
-};
+//   return {
+//     message: "Signup successful. Verify your email.",
+//     userId: user._id, // optional (useful for frontend)
+//   };
+// };
 
 
 //   const existingUser = await User.findOne({ email });
@@ -163,7 +163,7 @@ export const sendResetCodeService = async (email: string) => {
 };
 
 
-export const resetPasswordService = async (email : string, code : string, newPassword : string) => {
+export const resetPasswordService = async (email: string, code: string, newPassword: string) => {
   const storedCode = await redis.get(`reset:${email}`);
 
   if (!storedCode || storedCode !== code) {
@@ -230,3 +230,73 @@ export const resendOtpService = async (email: string) => {
     message: "OTP sent successfully",
   };
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+export const signupService = async (email: string, password: string) =>
+  {
+  const existingUser = await User.findOne({ email });
+  if (existingUser)
+  {
+  if (existingUser.isVerified)
+  {
+  throw new Error("User already exists");
+  }
+  const otp = generateOTP();
+  await redis.set(`verify:${email}`, otp, "EX", 180);
+  await transporter.sendMail({
+  to: email,
+  subject: "Verify Email",
+  text: `Your code: ${otp}`,
+  });
+  return { message: "OTP resent. Please verify your email." };
+  }
+  const hashed = await bcrypt.hash(password, 8);
+  const user = await User.create({
+  email,
+  password: hashed,
+  });
+  const otp = generateOTP();
+  await redis.set(`verify:${email}`, otp, "EX", 180);
+  await transporter.sendMail({
+  to: email,
+  subject: "Verify Email",
+  text: `Your code: ${otp}`,
+  });
+  return { message: "Signup successful. Verify your email." };
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
