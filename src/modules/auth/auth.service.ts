@@ -52,57 +52,43 @@ import { transporter } from "../../config/mail";
 export const signupService = async (email: string, password: string) => {
   const existingUser = await User.findOne({ email });
 
-  // 🔴 CASE 1: User exists
   if (existingUser) {
     if (existingUser.isVerified) {
       throw new Error("User already exists");
     }
 
-    // resend OTP for unverified user
     const otp = generateOTP();
 
-    await redis.set(`verify:${email}`, otp, "EX", 180);
+    // ✅ Run both concurrently, await both — no dropped emails
+    await Promise.all([
+      redis.set(`verify:${email}`, otp, "EX", 180),
+      transporter.sendMail({
+        to: email,
+        subject: "Verify Email",
+        text: `Your code: ${otp}`,
+      }),
+    ]);
 
-    // async email (non-blocking but safe)
-    void transporter.sendMail({
-      to: email,
-      subject: "Verify Email",
-      text: `Your verification code is: ${otp}`,
-    }).catch((err) => {
-      console.error("OTP resend email failed:", err);
-    });
-
-    return {
-      message: "OTP resent. Please verify your email.",
-    };
+    return { message: "OTP resent. Please verify your email." };
   }
 
-  // 🟢 CASE 2: New user
-  const hashedPassword = await bcrypt.hash(password, 8);
+  const hashed = await bcrypt.hash(password, 8);
 
-  const user = await User.create({
-    email,
-    password: hashedPassword,
-    isVerified: false,
-  });
+  await User.create({ email, password: hashed });
 
   const otp = generateOTP();
 
-  await redis.set(`verify:${email}`, otp, "EX", 180);
+  // ✅ Run both concurrently, await both — guaranteed delivery
+  await Promise.all([
+    redis.set(`verify:${email}`, otp, "EX", 180),
+    transporter.sendMail({
+      to: email,
+      subject: "Verify Email",
+      text: `Your code: ${otp}`,
+    }),
+  ]);
 
-  // async email (non-blocking but safe)
-  void transporter.sendMail({
-    to: email,
-    subject: "Verify Email",
-    text: `Your verification code is: ${otp}`,
-  }).catch((err) => {
-    console.error("Signup email failed:", err);
-  });
-
-  return {
-    message: "Signup successful. Verify your email.",
-    userId: user._id, // optional (useful for frontend)
-  };
+  return { message: "Signup successful. Verify your email." };
 };
 
 
