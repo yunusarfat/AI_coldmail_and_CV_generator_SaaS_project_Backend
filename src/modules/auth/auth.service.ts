@@ -4,31 +4,77 @@ import { generateOTP } from "../../utils/generateOTP";
 import { redis } from "../../config/redis";
 import { transporter } from "../../config/mail";
 
+// export const signupService = async (email: string, password: string) => {
+//   const existingUser = await User.findOne({ email });
+
+//   // 🔴 Case 1: user exists
+//   if (existingUser) {
+//     // ✅ already verified → block
+//     if (existingUser.isVerified) {
+//       throw new Error("User already exists");
+//     }
+
+//     // 🔁 not verified → resend OTP
+//     const otp = generateOTP();
+
+//     await redis.set(`verify:${email}`, otp, "EX", 180);
+
+//     await transporter.sendMail({
+//       to: email,
+//       subject: "Verify Email",
+//       text: `Your code: ${otp}`,
+//     });
+
+//     return { message: "OTP resent. Please verify your email." };
+//   }
+
+//   // 🟢 Case 2: new user → create
+//   const hashed = await bcrypt.hash(password, 8);
+
+//   const user = await User.create({
+//     email,
+//     password: hashed,
+//   });
+
+//   const otp = generateOTP();
+
+//   await redis.set(`verify:${email}`, otp, "EX", 180);
+
+//   await transporter.sendMail({
+//     to: email,
+//     subject: "Verify Email",
+//     text: `Your code: ${otp}`,
+//   });
+
+//   return { message: "Signup successful. Verify your email." };
+// };
+
 export const signupService = async (email: string, password: string) => {
   const existingUser = await User.findOne({ email });
 
   // 🔴 Case 1: user exists
   if (existingUser) {
-    // ✅ already verified → block
     if (existingUser.isVerified) {
       throw new Error("User already exists");
     }
 
-    // 🔁 not verified → resend OTP
     const otp = generateOTP();
 
+    // Fire these concurrently since they don't depend on each other
     await redis.set(`verify:${email}`, otp, "EX", 180);
 
-    await transporter.sendMail({
+    // ⚡ OPTIMIZATION: Remove 'await' from sendMail so it runs in the background
+    transporter.sendMail({
       to: email,
       subject: "Verify Email",
       text: `Your code: ${otp}`,
-    });
+    }).catch(err => console.error("Failed to resend signup email:", err));
 
     return { message: "OTP resent. Please verify your email." };
   }
 
   // 🟢 Case 2: new user → create
+  // Note: Your bcrypt salt rounds here is 8, which is already fast!
   const hashed = await bcrypt.hash(password, 8);
 
   const user = await User.create({
@@ -38,16 +84,25 @@ export const signupService = async (email: string, password: string) => {
 
   const otp = generateOTP();
 
+  // Save to redis
   await redis.set(`verify:${email}`, otp, "EX", 180);
 
-  await transporter.sendMail({
+  // ⚡ OPTIMIZATION: Do not 'await' the SMTP network call!
+  // Let it execute asynchronously while returning the response instantly.
+  transporter.sendMail({
     to: email,
     subject: "Verify Email",
     text: `Your code: ${otp}`,
-  });
+  }).catch(err => console.error("Failed to send signup email:", err));
 
   return { message: "Signup successful. Verify your email." };
 };
+
+
+
+
+
+
 
 export const verifyEmailService = async (email: string, code: string) => {
   const storedCode = await redis.get(`verify:${email}`);
