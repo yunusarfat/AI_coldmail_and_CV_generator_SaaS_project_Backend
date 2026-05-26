@@ -52,50 +52,57 @@ import { transporter } from "../../config/mail";
 export const signupService = async (email: string, password: string) => {
   const existingUser = await User.findOne({ email });
 
-  // 🔴 Case 1: user exists
+  // 🔴 CASE 1: User exists
   if (existingUser) {
     if (existingUser.isVerified) {
       throw new Error("User already exists");
     }
 
+    // resend OTP for unverified user
     const otp = generateOTP();
 
-    // Fire these concurrently since they don't depend on each other
     await redis.set(`verify:${email}`, otp, "EX", 180);
 
-    // ⚡ OPTIMIZATION: Remove 'await' from sendMail so it runs in the background
-    transporter.sendMail({
+    // async email (non-blocking but safe)
+    void transporter.sendMail({
       to: email,
       subject: "Verify Email",
-      text: `Your code: ${otp}`,
-    }).catch(err => console.error("Failed to resend signup email:", err));
+      text: `Your verification code is: ${otp}`,
+    }).catch((err) => {
+      console.error("OTP resend email failed:", err);
+    });
 
-    return { message: "OTP resent. Please verify your email." };
+    return {
+      message: "OTP resent. Please verify your email.",
+    };
   }
 
-  // 🟢 Case 2: new user → create
-  // Note: Your bcrypt salt rounds here is 8, which is already fast!
-  const hashed = await bcrypt.hash(password, 8);
+  // 🟢 CASE 2: New user
+  const hashedPassword = await bcrypt.hash(password, 8);
 
   const user = await User.create({
     email,
-    password: hashed,
+    password: hashedPassword,
+    isVerified: false,
   });
 
   const otp = generateOTP();
 
-  // Save to redis
   await redis.set(`verify:${email}`, otp, "EX", 180);
 
-  // ⚡ OPTIMIZATION: Do not 'await' the SMTP network call!
-  // Let it execute asynchronously while returning the response instantly.
-  transporter.sendMail({
+  // async email (non-blocking but safe)
+  void transporter.sendMail({
     to: email,
     subject: "Verify Email",
-    text: `Your code: ${otp}`,
-  }).catch(err => console.error("Failed to send signup email:", err));
+    text: `Your verification code is: ${otp}`,
+  }).catch((err) => {
+    console.error("Signup email failed:", err);
+  });
 
-  return { message: "Signup successful. Verify your email." };
+  return {
+    message: "Signup successful. Verify your email.",
+    userId: user._id, // optional (useful for frontend)
+  };
 };
 
 
