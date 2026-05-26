@@ -29,7 +29,7 @@ export const signupService = async (email: string, password: string) => {
   }
 
   // 🟢 Case 2: new user → create
-  const hashed = await bcrypt.hash(password, 10);
+  const hashed = await bcrypt.hash(password, 8);
 
   const user = await User.create({
     email,
