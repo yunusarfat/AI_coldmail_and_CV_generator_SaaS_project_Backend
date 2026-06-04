@@ -23,7 +23,15 @@ app.use(
   express.raw({  type: "*/*" })
 );
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "https://frontend-domain.vercel.app",
+    ],
+    credentials: true,
+  })
+);
 app.use(cookieParser());
 
 app.use("/api/payment", paymentRoutes);
