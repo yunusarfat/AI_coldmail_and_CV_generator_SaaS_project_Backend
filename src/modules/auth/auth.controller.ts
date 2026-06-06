@@ -160,6 +160,7 @@ export const googleLogin = async (req: Request, res: Response) => {
     res.json({
       message: "Google login successful",
       user,
+      token,
     });
   } catch (error: any) {
     res.status(400).json({
@@ -167,3 +168,9 @@ export const googleLogin = async (req: Request, res: Response) => {
     });
   }
 };
+
+
+
+
+
+
