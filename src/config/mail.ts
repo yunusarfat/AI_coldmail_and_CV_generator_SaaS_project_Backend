@@ -15,7 +15,7 @@ import nodemailer from "nodemailer";
 
 export const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
-  port: 465,
+  port: 587,
   secure: true,
   family: 4, // 👈 force IPv4, skip broken IPv6 route
   auth: {
