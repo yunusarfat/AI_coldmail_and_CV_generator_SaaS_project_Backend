@@ -22,6 +22,7 @@ export const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+   requireTLS: true, 
    tls: {
     rejectUnauthorized: false, // 👈 Prevents Render from dropping the connection during the TLS handshake
     ciphers: 'SSLv3'
