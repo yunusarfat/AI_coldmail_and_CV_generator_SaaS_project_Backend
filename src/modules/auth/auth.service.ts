@@ -125,22 +125,62 @@ export const verifyEmailService = async (email: string, code: string) => {
 
 import { generateToken } from "../../utils/jwt";
 
-export const signinService = async (email: string, password: string) => {
-  const user = await User.findOne({ email });
+// export const signinService = async (email: string, password: string) => {
+//   const user = await User.findOne({ email });
 
-  if (!user) throw new Error("User not found");
-  if (!user.isVerified) throw new Error("Email not verified");
-  if (!user.password) {
-    throw new Error("Password login not allowed for this account");
+//   if (!user) throw new Error("User not found");
+//   if (!user.isVerified) throw new Error("Email not verified");
+//   if (!user.password) {
+//     throw new Error("Password login not allowed for this account");
+//   }
+
+//   const match = await bcrypt.compare(password, user.password);
+//   if (!match) throw new Error("Wrong password");
+
+//   const token = generateToken(user._id.toString());
+
+//   return { user, token };
+// };
+
+
+
+
+// src/modules/auth/auth.service.ts — signupService (bottom, active version)
+
+export const signupService = async (email: string, password: string) => {
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    if (existingUser.isVerified) {
+      throw new Error("User already exists");
+    }
+    const otp = generateOTP();
+    await redis.set(`verify:${email}`, otp, "EX", 180);
+
+    // 👇 changed: don't await this
+    void transporter.sendMail({
+      to: email,
+      subject: "Verify Email",
+      text: `Your code: ${otp}`,
+    }).catch((err) => console.error("OTP resend email failed:", err));
+
+    return { message: "OTP resent. Please verify your email." };
   }
 
-  const match = await bcrypt.compare(password, user.password);
-  if (!match) throw new Error("Wrong password");
+  const hashed = await bcrypt.hash(password, 8);
+  const user = await User.create({ email, password: hashed });
+  const otp = generateOTP();
+  await redis.set(`verify:${email}`, otp, "EX", 180);
 
-  const token = generateToken(user._id.toString());
+  // 👇 changed: don't await this
+  void transporter.sendMail({
+    to: email,
+    subject: "Verify Email",
+    text: `Your code: ${otp}`,
+  }).catch((err) => console.error("Signup email failed:", err));
 
-  return { user, token };
+  return { message: "Signup successful. Verify your email." };
 };
+
 
 
 
@@ -233,51 +273,6 @@ export const resendOtpService = async (email: string) => {
     message: "OTP sent successfully",
   };
 };
-
-
-// src/modules/auth/auth.service.ts — signupService (bottom, active version)
-
-export const signupService = async (email: string, password: string) => {
-  const existingUser = await User.findOne({ email });
-  if (existingUser) {
-    if (existingUser.isVerified) {
-      throw new Error("User already exists");
-    }
-    const otp = generateOTP();
-    await redis.set(`verify:${email}`, otp, "EX", 180);
-
-    // 👇 changed: don't await this
-    void transporter.sendMail({
-      to: email,
-      subject: "Verify Email",
-      text: `Your code: ${otp}`,
-    }).catch((err) => console.error("OTP resend email failed:", err));
-
-    return { message: "OTP resent. Please verify your email." };
-  }
-
-  const hashed = await bcrypt.hash(password, 8);
-  const user = await User.create({ email, password: hashed });
-  const otp = generateOTP();
-  await redis.set(`verify:${email}`, otp, "EX", 180);
-
-  // 👇 changed: don't await this
-  void transporter.sendMail({
-    to: email,
-    subject: "Verify Email",
-    text: `Your code: ${otp}`,
-  }).catch((err) => console.error("Signup email failed:", err));
-
-  return { message: "Signup successful. Verify your email." };
-};
-
-
-
-
-
-
-
-
 
 
 
