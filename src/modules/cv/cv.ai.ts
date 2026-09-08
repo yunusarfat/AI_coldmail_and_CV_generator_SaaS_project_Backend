@@ -266,7 +266,7 @@ ${JSON.stringify(job.jobAnalysis)}
   });
 
   const response = await client.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: "openai/gpt-oss-20b",
     messages: [
       {
         role: "system",
@@ -278,6 +278,7 @@ ${JSON.stringify(job.jobAnalysis)}
       },
     ],
     temperature: 0.2,
+    max_tokens: 4096,
   });
   // console.log(process.env.GROQ_API_KEY);
 
@@ -307,10 +308,14 @@ ${JSON.stringify(job.jobAnalysis)}
 
   let parsed;
 
-  try {
+   try {
     parsed = JSON.parse(cleaned);
   } catch (err) {
-    console.log("RAW AI RESPONSE:", raw);
+    console.log("FINISH REASON:", response.choices[0]?.finish_reason);
+    console.log("RAW LENGTH:", raw.length);
+    console.log("RAW AI RESPONSE (full):");
+    console.log(raw);
+    console.log("PARSE ERROR MESSAGE:", (err as Error).message);
     throw new Error("AI returned invalid JSON format");
   }
 

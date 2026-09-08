@@ -1,8 +1,8 @@
-import bcrypt from "bcrypt";
-import { User } from "../../models/user.model";
-import { generateOTP } from "../../utils/generateOTP";
-import { redis } from "../../config/redis";
-import { transporter } from "../../config/mail";
+// import bcrypt from "bcrypt";
+// import { User } from "../../models/user.model";
+// import { generateOTP } from "../../utils/generateOTP";
+// import { redis } from "../../config/redis";
+// import { transporter } from "../../config/mail";
 
 // export const signupService = async (email: string, password: string) => {
 //   const existingUser = await User.findOne({ email });
@@ -108,18 +108,18 @@ import { transporter } from "../../config/mail";
 
 
 
-export const verifyEmailService = async (email: string, code: string) => {
-  const storedCode = await redis.get(`verify:${email}`);
+// export const verifyEmailService = async (email: string, code: string) => {
+//   const storedCode = await redis.get(`verify:${email}`);
 
-  if (!storedCode) throw new Error("Code expired");
-  if (storedCode !== code) throw new Error("Invalid code");
+//   if (!storedCode) throw new Error("Code expired");
+//   if (storedCode !== code) throw new Error("Invalid code");
 
-  await User.findOneAndUpdate({ email }, { isVerified: true });
+//   await User.findOneAndUpdate({ email }, { isVerified: true });
 
-  await redis.del(`verify:${email}`);
+//   await redis.del(`verify:${email}`);
 
-  return true;
-};
+//   return true;
+// };
 
 
 
@@ -147,39 +147,27 @@ import { generateToken } from "../../utils/jwt";
 
 // src/modules/auth/auth.service.ts — signupService (bottom, active version)
 
-export const signupService = async (email: string, password: string) => {
-  const existingUser = await User.findOne({ email });
-  if (existingUser) {
-    if (existingUser.isVerified) {
-      throw new Error("User already exists");
-    }
-    const otp = generateOTP();
-    await redis.set(`verify:${email}`, otp, "EX", 180);
+// export const signupService = async (email: string, password: string) => {
+//   const existingUser = await User.findOne({ email });
+//   if (existingUser) throw new Error("User already exists");
 
-    // 👇 changed: don't await this
-    void transporter.sendMail({
-      to: email,
-      subject: "Verify Email",
-      text: `Your code: ${otp}`,
-    }).catch((err) => console.error("OTP resend email failed:", err));
+//   const hashed = await bcrypt.hash(password, 8);
+//   await User.create({ email, password: hashed, isVerified: true });
 
-    return { message: "OTP resent. Please verify your email." };
-  }
+//   return { message: "Signup successful" };
+// };
 
-  const hashed = await bcrypt.hash(password, 8);
-  const user = await User.create({ email, password: hashed });
-  const otp = generateOTP();
-  await redis.set(`verify:${email}`, otp, "EX", 180);
+// export const signinService = async (email: string, password: string) => {
+//   const user = await User.findOne({ email });
+//   if (!user) throw new Error("User not found");
+//   if (!user.password) throw new Error("Password login not allowed for this account");
 
-  // 👇 changed: don't await this
-  void transporter.sendMail({
-    to: email,
-    subject: "Verify Email",
-    text: `Your code: ${otp}`,
-  }).catch((err) => console.error("Signup email failed:", err));
+//   const match = await bcrypt.compare(password, user.password);
+//   if (!match) throw new Error("Wrong password");
 
-  return { message: "Signup successful. Verify your email." };
-};
+//   const token = generateToken(user._id.toString());
+//   return { user, token };
+// };
 
 
 
@@ -188,91 +176,91 @@ export const signupService = async (email: string, password: string) => {
 
 //reset code
 
-export const sendResetCodeService = async (email: string) => {
-  const user = await User.findOne({ email });
-  if (!user) throw new Error("User not found");
+// export const sendResetCodeService = async (email: string) => {
+//   const user = await User.findOne({ email });
+//   if (!user) throw new Error("User not found");
 
-  const otp = generateOTP();
+//   const otp = generateOTP();
 
-  await redis.set(`reset:${email}`, otp, "EX", 180);
+//   await redis.set(`reset:${email}`, otp, "EX", 180);
 
-  await transporter.sendMail({
-    to: email,
-    subject: "Password Reset",
-    text: `Your reset code: ${otp}`,
-  });
+//   await transporter.sendMail({
+//     to: email,
+//     subject: "Password Reset",
+//     text: `Your reset code: ${otp}`,
+//   });
 
-  return true;
-};
-
-
-export const resetPasswordService = async (email: string, code: string, newPassword: string) => {
-  const storedCode = await redis.get(`reset:${email}`);
-
-  if (!storedCode || storedCode !== code) {
-    throw new Error("Invalid or expired code");
-  }
-
-  const hashed = await bcrypt.hash(newPassword, 10);
-
-  const user = await User.findOneAndUpdate(
-    { email },
-    { password: hashed },
-    { new: true }
-  );
-  console.log("user:", user);
-  console.log("password:", user?.password);
-
-  if (!user) throw new Error("User not found");
-
-  await redis.del(`reset:${email}`);
-
-  return true;
-};
+//   return true;
+// };
 
 
+// export const resetPasswordService = async (email: string, code: string, newPassword: string) => {
+//   const storedCode = await redis.get(`reset:${email}`);
+
+//   if (!storedCode || storedCode !== code) {
+//     throw new Error("Invalid or expired code");
+//   }
+
+//   const hashed = await bcrypt.hash(newPassword, 10);
+
+//   const user = await User.findOneAndUpdate(
+//     { email },
+//     { password: hashed },
+//     { new: true }
+//   );
+//   console.log("user:", user);
+//   console.log("password:", user?.password);
+
+//   if (!user) throw new Error("User not found");
+
+//   await redis.del(`reset:${email}`);
+
+//   return true;
+// };
 
 
-export const resendOtpService = async (email: string) => {
-  const user = await User.findOne({ email });
 
-  if (!user) {
-    throw new Error("User not found");
-  }
 
-  if (user.isVerified) {
-    throw new Error("User already verified");
-  }
+// export const resendOtpService = async (email: string) => {
+//   const user = await User.findOne({ email });
 
-  // 🔥 CHECK COOLDOWN
-  const cooldown = await redis.get(`otp:cooldown:${email}`);
+//   if (!user) {
+//     throw new Error("User not found");
+//   }
 
-  if (cooldown) {
-    throw new Error("Please wait before requesting another OTP");
-  }
+//   if (user.isVerified) {
+//     throw new Error("User already verified");
+//   }
 
-  // generate OTP
-  const otp = generateOTP();
+//   // 🔥 CHECK COOLDOWN
+//   const cooldown = await redis.get(`otp:cooldown:${email}`);
 
-  // store OTP (3 min expiry)
-  await redis.set(`verify:${email}`, otp, "EX", 180);
+//   if (cooldown) {
+//     throw new Error("Please wait before requesting another OTP");
+//   }
 
-  // set cooldown (60 sec)
-  await redis.set(`otp:cooldown:${email}`, "1", "EX", 60);
+//   // generate OTP
+//   const otp = generateOTP();
 
-  // send email (non-blocking)
-  void transporter.sendMail({
-    to: email,
-    subject: "Resend OTP",
-    text: `Your verification code: ${otp}`,
-  }).catch((err) => {
-    console.error("Resend OTP email failed:", err);
-  });
+//   // store OTP (3 min expiry)
+//   await redis.set(`verify:${email}`, otp, "EX", 180);
 
-  return {
-    message: "OTP sent successfully",
-  };
-};
+//   // set cooldown (60 sec)
+//   await redis.set(`otp:cooldown:${email}`, "1", "EX", 60);
+
+//   // send email (non-blocking)
+//   void transporter.sendMail({
+//     to: email,
+//     subject: "Resend OTP",
+//     text: `Your verification code: ${otp}`,
+//   }).catch((err) => {
+//     console.error("Resend OTP email failed:", err);
+//   });
+
+//   return {
+//     message: "OTP sent successfully",
+//   };
+// };
 
 
 
@@ -331,6 +319,28 @@ export const resendOtpService = async (email: string) => {
 
 
 
+import bcrypt from "bcrypt";
+import { User } from "../../models/user.model";
+import { generateToken } from "../../utils/jwt";
 
+export const signupService = async (email: string, password: string) => {
+  const existingUser = await User.findOne({ email });
+  if (existingUser) throw new Error("User already exists");
 
+  const hashed = await bcrypt.hash(password, 8);
+  await User.create({ email, password: hashed, isVerified: true });
 
+  return { message: "Signup successful" };
+};
+
+export const signinService = async (email: string, password: string) => {
+  const user = await User.findOne({ email });
+  if (!user) throw new Error("User not found");
+  if (!user.password) throw new Error("Password login not allowed for this account");
+
+  const match = await bcrypt.compare(password, user.password);
+  if (!match) throw new Error("Wrong password");
+
+  const token = generateToken(user._id.toString());
+  return { user, token };
+};

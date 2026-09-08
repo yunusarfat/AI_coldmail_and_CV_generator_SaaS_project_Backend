@@ -11,21 +11,8 @@
 
 
 
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
-export const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  family: 4, // 👈 force IPv4, skip broken IPv6 route
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-   requireTLS: true, 
-   tls: {
-    rejectUnauthorized: false, // 👈 Prevents Render from dropping the connection during the TLS handshake
-    ciphers: 'SSLv3'
-  }
+export const resend = new Resend(process.env.RESEND_API_KEY);
 
-} as nodemailer.TransportOptions); // 👈 Added type casting here
+export const EMAIL_FROM = process.env.RESEND_FROM || "onboarding@resend.dev";

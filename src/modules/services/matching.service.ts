@@ -215,10 +215,12 @@ export const matchProfileWithJob = async (profileId: string) => {
     hooks.push("Relevant industry experience");
   }
 
-  // -----------------------------------
+    // -----------------------------------
   // FINAL CLEANUP
   // -----------------------------------
   score = Math.min(score, 1);
+
+  const percentScore = Math.round(score * 100);
 
   hooks = [...new Set(hooks)];
 
@@ -229,7 +231,7 @@ export const matchProfileWithJob = async (profileId: string) => {
   // -----------------------------------
   // SAVE TO PROFILE
   // -----------------------------------
-  profile.matchScore = Number(score.toFixed(2));
+  profile.matchScore = percentScore;
 
   profile.hooks = hooks;
 
@@ -241,7 +243,9 @@ export const matchProfileWithJob = async (profileId: string) => {
   return {
     profileId: profile._id,
 
-    score: Number(score.toFixed(2)),
+    score: percentScore,
+
+    matchScore: percentScore,
 
     matchedSkills,
 

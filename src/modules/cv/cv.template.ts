@@ -1,4 +1,10 @@
 export const buildCVTemplate = (data: any) => {
+    const experience = Array.isArray(data.experience) ? data.experience : [];
+    const projects = Array.isArray(data.projects) ? data.projects : [];
+    const skills = Array.isArray(data.skills) ? data.skills : [];
+    const education = Array.isArray(data.education) ? data.education : [];
+    const achievements = Array.isArray(data.achievements) ? data.achievements : [];
+
     return `
     <html>
       <head>
@@ -36,22 +42,22 @@ export const buildCVTemplate = (data: any) => {
   
         <h1>${data.name || "Candidate"}</h1>
   
-        <p>${data.headline}</p>
+        <p>${data.headline || ""}</p>
   
         <h2>Summary</h2>
-        <p>${data.summary}</p>
+        <p>${data.summary || ""}</p>
   
         
        <h2>Experience</h2>
 
 <ul>
-${data.experience
+${experience
             .map(
                 (exp: any) => `
       <li>
         <strong>${exp.title}</strong> - ${exp.company} (${exp.dates})
         <ul>
-          ${exp.description
+          ${(Array.isArray(exp.description) ? exp.description : [])
                         .map((d: string) => `<li>${d}</li>`)
                         .join("")}
         </ul>
@@ -63,7 +69,7 @@ ${data.experience
         <h2>Projects</h2>
   
         <ul>
-        ${data.projects
+        ${projects
           .map(
             (p: any) => `
             <li>
@@ -94,7 +100,7 @@ ${data.experience
         <h2>Skills</h2>
   
         <div class="skills">
-          ${data.skills
+          ${skills
             .map((skill: string) => `<span>${skill}</span>`)
             .join("")}
         </div>
@@ -103,8 +109,8 @@ ${data.experience
         <h2>Education</h2>
 
 <ul>
-  ${data.education
-            ?.map(
+  ${education
+            .map(
                 (edu: any) => `
       <li>
         <strong>${edu.institution}</strong><br/>
@@ -119,8 +125,8 @@ ${data.experience
         <h2>Achievements</h2>
 
 <ul>
-  ${data.achievements?.length
-            ? data.achievements
+  ${achievements.length
+            ? achievements
                 .map((a: string) => `<li>${a}</li>`)
                 .join("")
             : "<li>No achievements listed</li>"

@@ -1,3 +1,4 @@
+
 {
   "name": "aimail-backend",
   "version": "1.0.0",
@@ -20,7 +21,8 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "google-auth-library": "^10.6.2",
+    "firebase-admin": "^13.0.0",
+    "resend": "^4.0.0",
     "ioredis": "^5.10.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.6.1",

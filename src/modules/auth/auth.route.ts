@@ -6,7 +6,6 @@ import { verifyEmail } from "./auth.controller";
 import { signin } from "./auth.controller";
 import { sendResetCode } from "./auth.controller";
 import { resetPassword } from "./auth.controller";
-
 import { resendOtp } from "./auth.controller";
 import { logout } from "./auth.controller";
 
@@ -15,8 +14,8 @@ const router = express.Router();
 router.post("/signup", signup);
 // router.post("/verify-email", verifyEmail);
 router.post("/signin", signin);
-router.post("/forgot-password", sendResetCode);
-router.post("/reset-password", resetPassword);
+// router.post("/forgot-password", sendResetCode);
+// router.post("/reset-password", resetPassword);
 router.post("/logout", logout);
 // router.post("/resend-otp", resendOtp);
 
@@ -32,8 +31,10 @@ router.get("/me", authMiddleware, (req, res) => {
 
 import { googleLogin } from "./auth.controller";
 
-router.post("/google", googleLogin);
+// router.post("/google", googleLogin);
 
+import { deleteAccount } from "./auth.controller";
+router.delete("/delete-account", authMiddleware, deleteAccount);
 
 
 
