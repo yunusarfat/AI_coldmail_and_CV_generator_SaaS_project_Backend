@@ -29,7 +29,7 @@ router.get("/me", authMiddleware, (req, res) => {
 
 
 
-import { googleLogin } from "./auth.controller";
+// import { googleLogin } from "./auth.controller";
 
 // router.post("/google", googleLogin);
 

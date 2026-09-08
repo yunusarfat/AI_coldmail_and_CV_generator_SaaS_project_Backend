@@ -1,45 +1,45 @@
-// import { OAuth2Client } from "google-auth-library";
-// import { User } from "../../models/user.model";
-// import { generateToken } from "../../utils/jwt";
+// // import { OAuth2Client } from "google-auth-library";
+// // import { User } from "../../models/user.model";
+// // import { generateToken } from "../../utils/jwt";
 
-// const client = new OAuth2Client(
-//   process.env.GOOGLE_CLIENT_ID
-// );
+// // const client = new OAuth2Client(
+// //   process.env.GOOGLE_CLIENT_ID
+// // );
 
-// // STEP 1: verify Google token
+// // // STEP 1: verify Google token
+// // export const verifyGoogleToken = async (idToken: string) => {
+// //   const ticket = await client.verifyIdToken({
+// //     idToken,
+// //     audience: process.env.GOOGLE_CLIENT_ID,
+// //   });
+
+// //   const payload = ticket.getPayload();
+
+// //   if (!payload?.email) {
+// //     throw new Error("Invalid Google token");
+// //   }
+
+// //   return {
+// //     email: payload.email,
+// //     name: payload.name,
+// //     googleId: payload.sub,
+// //   };
+// // };
+
+
+
+// import { adminAuth } from "../../config/firebase";
+
 // export const verifyGoogleToken = async (idToken: string) => {
-//   const ticket = await client.verifyIdToken({
-//     idToken,
-//     audience: process.env.GOOGLE_CLIENT_ID,
-//   });
+//   const decoded = await adminAuth.verifyIdToken(idToken);
 
-//   const payload = ticket.getPayload();
-
-//   if (!payload?.email) {
+//   if (!decoded.email) {
 //     throw new Error("Invalid Google token");
 //   }
 
 //   return {
-//     email: payload.email,
-//     name: payload.name,
-//     googleId: payload.sub,
+//     email: decoded.email,
+//     name: decoded.name,
+//     googleId: decoded.uid,
 //   };
 // };
-
-
-
-import { adminAuth } from "../../config/firebase";
-
-export const verifyGoogleToken = async (idToken: string) => {
-  const decoded = await adminAuth.verifyIdToken(idToken);
-
-  if (!decoded.email) {
-    throw new Error("Invalid Google token");
-  }
-
-  return {
-    email: decoded.email,
-    name: decoded.name,
-    googleId: decoded.uid,
-  };
-};

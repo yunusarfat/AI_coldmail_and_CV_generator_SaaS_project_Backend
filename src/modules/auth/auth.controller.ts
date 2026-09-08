@@ -250,9 +250,9 @@
 
 import { Request, Response } from "express";
 import { signupService, signinService } from "./auth.service";
-import { verifyGoogleToken } from "./auth.google";
+// import { verifyGoogleToken } from "./auth.google";
 import { User } from "../../models/user.model";
-import { generateToken } from "../../utils/jwt";
+// import { generateToken } from "../../utils/jwt";
 
 export const signup = async (req: Request, res: Response) => {
   try {
@@ -309,32 +309,32 @@ export const deleteAccount = async (req: Request, res: Response) => {
   }
 };
 
-export const googleLogin = async (req: Request, res: Response) => {
-  try {
-    const { idToken } = req.body;
+// export const googleLogin = async (req: Request, res: Response) => {
+//   try {
+//     const { idToken } = req.body;
 
-    const googleUser = await verifyGoogleToken(idToken);
+//     const googleUser = await verifyGoogleToken(idToken);
 
-    let user = await User.findOne({ email: googleUser.email });
+//     let user = await User.findOne({ email: googleUser.email });
 
-    if (!user) {
-      user = await User.create({
-        email: googleUser.email,
-        password: "",
-        isVerified: true,
-      });
-    }
+//     if (!user) {
+//       user = await User.create({
+//         email: googleUser.email,
+//         password: "",
+//         isVerified: true,
+//       });
+//     }
 
-    const token = generateToken(user._id.toString());
+//     const token = generateToken(user._id.toString());
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-    });
+//     res.cookie("token", token, {
+//       httpOnly: true,
+//       secure: false,
+//       sameSite: "lax",
+//     });
 
-    res.json({ message: "Google login successful", user, token });
-  } catch (err: any) {
-    res.status(400).json({ error: err.message });
-  }
-};
+//     res.json({ message: "Google login successful", user, token });
+//   } catch (err: any) {
+//     res.status(400).json({ error: err.message });
+//   }
+// };
