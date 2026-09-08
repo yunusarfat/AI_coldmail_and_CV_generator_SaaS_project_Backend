@@ -2,11 +2,11 @@ import { Router } from "express";
 import express from "express";
 import { authMiddleware } from "../../middleware/auth.middleware";
 import { signup } from "./auth.controller";
-import { verifyEmail } from "./auth.controller";
+// import { verifyEmail } from "./auth.controller";
 import { signin } from "./auth.controller";
-import { sendResetCode } from "./auth.controller";
-import { resetPassword } from "./auth.controller";
-import { resendOtp } from "./auth.controller";
+// import { sendResetCode } from "./auth.controller";
+// import { resetPassword } from "./auth.controller";
+// import { resendOtp } from "./auth.controller";
 import { logout } from "./auth.controller";
 
 const router = express.Router();

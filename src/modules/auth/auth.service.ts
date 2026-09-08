@@ -321,7 +321,7 @@ import { generateToken } from "../../utils/jwt";
 
 import bcrypt from "bcrypt";
 import { User } from "../../models/user.model";
-import { generateToken } from "../../utils/jwt";
+// import { generateToken } from "../../utils/jwt";
 
 export const signupService = async (email: string, password: string) => {
   const existingUser = await User.findOne({ email });
