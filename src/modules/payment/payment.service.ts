@@ -25,8 +25,8 @@ export const createCheckoutSession = async (userId: string) => {
         userId,
       },
   
-      success_url: "http://localhost:3000/success",
-      cancel_url: "http://localhost:3000/cancel",
+      success_url: "https://careerforge-jrrea7va3-arfats-projects-78e9fab8.vercel.app/success",
+      cancel_url: "https://careerforge-jrrea7va3-arfats-projects-78e9fab8.vercel.app/cancel",
     });
   
     return session.url;

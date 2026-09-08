@@ -27,7 +27,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:3000",
-      "https://frontend-domain.vercel.app",
+      "https://careerforge-jrrea7va3-arfats-projects-78e9fab8.vercel.app",
     ],
     credentials: true,
   })
